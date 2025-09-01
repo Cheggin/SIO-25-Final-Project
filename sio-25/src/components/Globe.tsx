@@ -1,49 +1,170 @@
-import { useRef, useState, useMemo } from 'react';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { OrbitControls, Sphere, Html } from '@react-three/drei';
-import { TextureLoader } from 'three';
-import * as THREE from 'three';
-import { DisasterLocation } from '../types/disaster';
+import { useEffect, useRef } from 'react';
+import Globe from 'globe.gl';
+import type { DisasterLocation } from '../types/disaster';
 
 interface GlobeProps {
   disasters: DisasterLocation[];
   onDisasterClick: (disaster: DisasterLocation) => void;
 }
 
-function Earth({ disasters, onDisasterClick }: GlobeProps) {
-  const globeRef = useRef<THREE.Mesh>(null);
-  const [hoveredDisaster, setHoveredDisaster] = useState<string | null>(null);
-  
-  const earthTexture = useLoader(TextureLoader, '/earth-texture.jpg');
-  const bumpTexture = useLoader(TextureLoader, '/earth-bump.jpg');
-  
-  useFrame(() => {
-    if (globeRef.current) {
-      globeRef.current.rotation.y += 0.001;
-    }
-  });
+interface PointData {
+  lat: number;
+  lng: number;
+  size: number;
+  color: string;
+  disaster: DisasterLocation;
+}
 
-  const disasterMarkers = useMemo(() => {
-    return disasters.map((disaster) => {
-      const phi = (90 - disaster.latitude) * (Math.PI / 180);
-      const theta = (disaster.longitude + 180) * (Math.PI / 180);
-      const radius = 2.05;
-      
-      const x = -radius * Math.sin(phi) * Math.cos(theta);
-      const z = radius * Math.sin(phi) * Math.sin(theta);
-      const y = radius * Math.cos(phi);
-      
-      return {
-        position: [x, y, z] as [number, number, number],
-        disaster,
+export default function GlobeComponent({ disasters, onDisasterClick }: GlobeProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const globeRef = useRef<ReturnType<typeof Globe> | null>(null);
+
+  useEffect(() => {
+    const currentContainer = containerRef.current;
+    if (!currentContainer) {
+      console.error('Container not found');
+      return;
+    }
+
+    console.log('Initializing globe...', { width: currentContainer.clientWidth, height: currentContainer.clientHeight });
+
+    try {
+      // Clear any existing content
+      currentContainer.innerHTML = '';
+
+      // Initialize globe with Earth texture (same as basic Globe.gl example)
+      const globe = Globe()
+        .globeImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
+        .backgroundColor('#000814')
+        .width(currentContainer.clientWidth || 800)
+        .height(currentContainer.clientHeight || 600);
+
+      console.log('Globe instance created:', globe);
+
+      // Add globe to container
+      globe(currentContainer);
+      globeRef.current = globe;
+
+      console.log('Globe mounted successfully');
+
+      // Handle window resize
+      const handleResize = () => {
+        if (currentContainer && globeRef.current) {
+          globeRef.current
+            .width(currentContainer.clientWidth)
+            .height(currentContainer.clientHeight);
+        }
       };
-    });
-  }, [disasters]);
+
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        console.log('Cleaning up globe...');
+        window.removeEventListener('resize', handleResize);
+        
+        // Comprehensive cleanup
+        if (globeRef.current) {
+          try {
+            // Pause animation to stop rendering loop
+            if (typeof globeRef.current.pauseAnimation === 'function') {
+              globeRef.current.pauseAnimation();
+            }
+            
+            // Clear all data layers
+            if (typeof globeRef.current.pointsData === 'function') {
+              globeRef.current.pointsData([]);
+            }
+            
+            // Use internal destructor if available
+            const globeInstance = globeRef.current as unknown as { _destructor?: () => void };
+            if (typeof globeInstance._destructor === 'function') {
+              globeInstance._destructor();
+            }
+            
+            // Clear the reference
+            globeRef.current = null;
+            console.log('Globe cleaned up successfully');
+          } catch (error) {
+            console.error('Error during globe cleanup:', error);
+          }
+        }
+        
+        // Clean up DOM elements
+        if (currentContainer) {
+          currentContainer.innerHTML = '';
+        }
+      };
+    } catch (error) {
+      console.error('Error initializing globe:', error);
+      // Show error message in container
+      currentContainer.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white; flex-direction: column; gap: 1rem;">
+          <div style="font-size: 1.2rem;">Failed to initialize globe</div>
+          <div style="font-size: 0.9rem; opacity: 0.7;">Check console for details</div>
+        </div>
+      `;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!globeRef.current || disasters.length === 0) {
+      console.log('No globe or disasters:', { globe: !!globeRef.current, disasters: disasters.length });
+      return;
+    }
+
+    try {
+      console.log('Adding disaster data to globe:', disasters.length, 'disasters');
+
+      // Convert disasters to globe.gl format
+      const pointsData = disasters.map(disaster => ({
+        lat: disaster.latitude,
+        lng: disaster.longitude,
+        size: getMarkerSize(disaster.severity),
+        color: getMarkerColor(disaster.type),
+        disaster: disaster
+      }));
+
+      // Configure points layer
+      globeRef.current
+        .pointsData(pointsData)
+        .pointAltitude(0.01)
+        .pointRadius('size')
+        .pointColor('color')
+        .pointLabel((d: PointData) => `
+          <div style="background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 4px; font-size: 12px;">
+            <div style="font-weight: bold;">${d.disaster.name}</div>
+            <div style="color: #ccc;">${d.disaster.type} - ${d.disaster.severity}</div>
+          </div>
+        `)
+        .onPointClick((point: PointData) => {
+          onDisasterClick(point.disaster);
+        });
+
+      console.log('Disaster points added successfully');
+
+      // Auto-rotate
+      try {
+        if (globeRef.current.controls && typeof globeRef.current.controls === 'function') {
+          const controls = globeRef.current.controls();
+          if (controls) {
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.5;
+            console.log('Auto-rotate enabled');
+          }
+        }
+      } catch (error) {
+        console.warn('Could not enable auto-rotate:', error);
+      }
+
+    } catch (error) {
+      console.error('Error configuring globe data:', error);
+    }
+  }, [disasters, onDisasterClick]);
 
   const getMarkerColor = (type: DisasterLocation['type']) => {
     const colors = {
       wildfire: '#ff4444',
-      flood: '#4444ff',
+      flood: '#4444ff', 
       hurricane: '#8844ff',
       drought: '#ff8844',
       heatwave: '#ff6644',
@@ -56,90 +177,25 @@ function Earth({ disasters, onDisasterClick }: GlobeProps) {
 
   const getMarkerSize = (severity: DisasterLocation['severity']) => {
     const sizes = {
-      low: 0.02,
-      moderate: 0.03,
-      high: 0.04,
-      critical: 0.05,
+      low: 0.3,
+      moderate: 0.5,
+      high: 0.7,
+      critical: 1.0,
     };
-    return sizes[severity] || 0.03;
+    return sizes[severity] || 0.5;
   };
 
   return (
-    <group>
-      <Sphere ref={globeRef} args={[2, 64, 64]}>
-        <meshPhongMaterial
-          map={earthTexture}
-          bumpMap={bumpTexture}
-          bumpScale={0.05}
-          specularMap={earthTexture}
-          specular={new THREE.Color('grey')}
-          shininess={5}
-        />
-      </Sphere>
-      
-      {disasterMarkers.map((marker) => (
-        <group key={marker.disaster.id} position={marker.position}>
-          <mesh
-            onPointerOver={() => setHoveredDisaster(marker.disaster.id)}
-            onPointerOut={() => setHoveredDisaster(null)}
-            onClick={() => onDisasterClick(marker.disaster)}
-          >
-            <sphereGeometry args={[getMarkerSize(marker.disaster.severity), 16, 16]} />
-            <meshBasicMaterial
-              color={getMarkerColor(marker.disaster.type)}
-              emissive={getMarkerColor(marker.disaster.type)}
-              emissiveIntensity={hoveredDisaster === marker.disaster.id ? 2 : 1}
-            />
-          </mesh>
-          
-          {hoveredDisaster === marker.disaster.id && (
-            <Html distanceFactor={10}>
-              <div className="disaster-tooltip">
-                <p className="disaster-name">{marker.disaster.name}</p>
-                <p className="disaster-type">{marker.disaster.type}</p>
-              </div>
-            </Html>
-          )}
-          
-          <mesh>
-            <ringGeometry args={[getMarkerSize(marker.disaster.severity) * 1.5, getMarkerSize(marker.disaster.severity) * 2, 32]} />
-            <meshBasicMaterial
-              color={getMarkerColor(marker.disaster.type)}
-              opacity={0.3}
-              transparent
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
-
-export default function Globe({ disasters, onDisasterClick }: GlobeProps) {
-  return (
-    <div className="globe-container">
-      <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 3, 5]} intensity={1} />
-        <directionalLight position={[-5, -3, -5]} intensity={0.3} />
-        
-        <Earth disasters={disasters} onDisasterClick={onDisasterClick} />
-        
-        <OrbitControls
-          enablePan={false}
-          enableZoom={true}
-          minDistance={3}
-          maxDistance={10}
-          rotateSpeed={0.5}
-          zoomSpeed={0.5}
-        />
-        
-        <mesh position={[0, 0, -10]}>
-          <planeGeometry args={[100, 100]} />
-          <meshBasicMaterial color="#000814" />
-        </mesh>
-      </Canvas>
-    </div>
+    <div 
+      ref={containerRef}
+      className="globe-container"
+      style={{ 
+        width: '100%', 
+        height: '100%',
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: '400px'
+      }}
+    />
   );
 }

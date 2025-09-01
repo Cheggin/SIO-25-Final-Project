@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
-import { DisasterLocation } from './types/disaster';
-import { FilterState } from './components/FilterBar';
+import type { DisasterLocation } from './types/disaster';
+import type { FilterState } from './components/FilterBar';
 import Globe from './components/Globe';
 import DisasterPanel from './components/DisasterPanel';
 import FilterBar from './components/FilterBar';
@@ -21,10 +21,6 @@ function App() {
   });
 
   const browserAgent = new BrowserUseAgent();
-
-  useEffect(() => {
-    applyFilters();
-  }, [disasters, filters, applyFilters]);
 
   const applyFilters = useCallback(() => {
     let filtered = [...disasters];
@@ -47,6 +43,10 @@ function App() {
 
     setFilteredDisasters(filtered);
   }, [disasters, filters]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const handleRefreshData = async () => {
     setIsLoading(true);

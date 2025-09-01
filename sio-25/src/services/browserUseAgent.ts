@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { DisasterLocation, DonationLink } from '../types/disaster';
+import type { DisasterLocation, DonationLink } from '../types/disaster';
 
 interface BrowserUseConfig {
   apiKey?: string;
@@ -107,7 +107,7 @@ export class BrowserUseAgent {
             this.parseToDisasterLocation(item)
           ).filter(Boolean);
           
-          disasters.push(...parsedDisasters);
+          disasters.push(...parsedDisasters.filter((d): d is DisasterLocation => d !== null));
         }
       } catch (error) {
         console.error(`Error searching disasters from ${url}:`, error);
@@ -199,7 +199,7 @@ export class BrowserUseAgent {
   }
 
   private parseCoordinate(value: unknown): number | null {
-    const parsed = parseFloat(value);
+    const parsed = parseFloat(value as string);
     return isNaN(parsed) ? null : parsed;
   }
 
