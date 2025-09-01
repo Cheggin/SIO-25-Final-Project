@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { DisasterLocation } from './types/disaster';
 import { FilterState } from './components/FilterBar';
 import Globe from './components/Globe';
@@ -24,9 +24,9 @@ function App() {
 
   useEffect(() => {
     applyFilters();
-  }, [disasters, filters]);
+  }, [disasters, filters, applyFilters]);
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...disasters];
 
     if (filters.types.length > 0) {
@@ -46,7 +46,7 @@ function App() {
     }
 
     setFilteredDisasters(filtered);
-  };
+  }, [disasters, filters]);
 
   const handleRefreshData = async () => {
     setIsLoading(true);

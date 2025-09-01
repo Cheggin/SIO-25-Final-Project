@@ -103,7 +103,7 @@ export class BrowserUseAgent {
         );
 
         if (response.data && Array.isArray(response.data)) {
-          const parsedDisasters = response.data.map((item: any) => 
+          const parsedDisasters = response.data.map((item: unknown) => 
             this.parseToDisasterLocation(item)
           ).filter(Boolean);
           
@@ -142,10 +142,10 @@ export class BrowserUseAgent {
       );
 
       if (response.data && Array.isArray(response.data)) {
-        return response.data.map((item: any) => ({
-          organization: item.organization || 'Relief Organization',
-          url: item.url || '#',
-          description: item.description || 'Supporting disaster relief efforts',
+        return response.data.map((item: unknown) => ({
+          organization: (item as Record<string, unknown>).organization as string || 'Relief Organization',
+          url: (item as Record<string, unknown>).url as string || '#',
+          description: (item as Record<string, unknown>).description as string || 'Supporting disaster relief efforts',
         }));
       }
     } catch (error) {
@@ -155,21 +155,22 @@ export class BrowserUseAgent {
     return this.getDefaultDonationLinks();
   }
 
-  private parseToDisasterLocation(data: any): DisasterLocation | null {
+  private parseToDisasterLocation(data: unknown): DisasterLocation | null {
     try {
+      const parsedData = data as Record<string, unknown>;
       return {
         id: `disaster-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: data.title || data.name || 'Unknown Disaster',
-        type: this.inferDisasterType(data.title || data.description || ''),
-        latitude: this.parseCoordinate(data.latitude) || this.estimateLatitude(data.location),
-        longitude: this.parseCoordinate(data.longitude) || this.estimateLongitude(data.location),
-        date: new Date(data.date || Date.now()),
-        severity: this.inferSeverity(data),
-        affectedPeople: parseInt(data.affectedPeople) || 0,
-        summary: data.summary || data.description || 'No description available',
-        donationLinks: data.donationLinks || [],
-        source: data.source,
-        imageUrl: data.imageUrl,
+        name: (parsedData.title as string) || (parsedData.name as string) || 'Unknown Disaster',
+        type: this.inferDisasterType((parsedData.title as string) || (parsedData.description as string) || ''),
+        latitude: this.parseCoordinate(parsedData.latitude) || this.estimateLatitude((parsedData.location as string) || ''),
+        longitude: this.parseCoordinate(parsedData.longitude) || this.estimateLongitude((parsedData.location as string) || ''),
+        date: new Date((parsedData.date as string) || Date.now()),
+        severity: this.inferSeverity(parsedData),
+        affectedPeople: parseInt((parsedData.affectedPeople as string) || '0') || 0,
+        summary: (parsedData.summary as string) || (parsedData.description as string) || 'No description available',
+        donationLinks: (parsedData.donationLinks as DonationLink[]) || [],
+        source: parsedData.source as string,
+        imageUrl: parsedData.imageUrl as string,
       };
     } catch (error) {
       console.error('Error parsing disaster data:', error);
@@ -189,15 +190,15 @@ export class BrowserUseAgent {
     return 'other';
   }
 
-  private inferSeverity(data: any): DisasterLocation['severity'] {
-    const affectedPeople = parseInt(data.affectedPeople) || 0;
+  private inferSeverity(data: Record<string, unknown>): DisasterLocation['severity'] {
+    const affectedPeople = parseInt((data.affectedPeople as string) || '0') || 0;
     if (affectedPeople > 1000000 || data.severity === 'critical') return 'critical';
     if (affectedPeople > 100000 || data.severity === 'high') return 'high';
     if (affectedPeople > 10000 || data.severity === 'moderate') return 'moderate';
     return 'low';
   }
 
-  private parseCoordinate(value: any): number | null {
+  private parseCoordinate(value: unknown): number | null {
     const parsed = parseFloat(value);
     return isNaN(parsed) ? null : parsed;
   }
