@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { DisasterLocation, DonationLink } from '../types/disaster';
+import type { DisasterLocation, DonationLink } from '../types/disaster';
 
 interface BrowserUseConfig {
   apiKey?: string;

@@ -1,4 +1,4 @@
-import { DisasterLocation } from '../types/disaster';
+import type { DisasterLocation } from '../types/disaster';
 
 export const mockDisasters: DisasterLocation[] = [
   {

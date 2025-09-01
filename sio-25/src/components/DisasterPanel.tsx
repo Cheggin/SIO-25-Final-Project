@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Users, Calendar, AlertTriangle, Heart } from 'lucide-react';
-import { DisasterLocation } from '../types/disaster';
+import type { DisasterLocation } from '../types/disaster';
 
 interface DisasterPanelProps {
   disaster: DisasterLocation | null;

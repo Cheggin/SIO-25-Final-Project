@@ -17,6 +17,7 @@ body {
 
 .app {
   min-height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
 }
@@ -27,11 +28,12 @@ body {
   padding: 1.5rem 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 100;
+  width: 100%;
 }
 
 .header-content {
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
 }
 
 .logo-section {
@@ -112,6 +114,7 @@ h1 {
   position: relative;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .stats-bar {
@@ -146,6 +149,7 @@ h1 {
   flex: 1;
   position: relative;
   min-height: 600px;
+  width: 100%;
 }
 
 .globe-container {
@@ -154,6 +158,8 @@ h1 {
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .loading-container {

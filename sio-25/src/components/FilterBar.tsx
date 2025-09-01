@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Filter, Calendar, AlertTriangle } from 'lucide-react';
-import { DisasterLocation } from '../types/disaster';
+import type { DisasterLocation } from '../types/disaster';
 
 interface FilterBarProps {
   onFilterChange: (filters: FilterState) => void;

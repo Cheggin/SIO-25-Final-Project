@@ -1,30 +1,49 @@
-import { useState, useEffect, useCallback, Suspense } from 'react';
-import { DisasterLocation } from './types/disaster';
-import { FilterState } from './components/FilterBar';
+import { useState, useEffect, useCallback } from 'react';
+import type { DisasterLocation } from './types/disaster';
+import type { FilterState } from './components/FilterBar';
 import Globe from './components/Globe';
 import DisasterPanel from './components/DisasterPanel';
 import FilterBar from './components/FilterBar';
-import { BrowserUseAgent } from './services/browserUseAgent';
-import { mockDisasters } from './data/mockDisasters';
+import { EmdatService } from './services/emdatService';
 import { Globe as GlobeIcon, RefreshCw, AlertTriangle } from 'lucide-react';
 import './App.css';
 
 function App() {
-  const [disasters, setDisasters] = useState<DisasterLocation[]>(mockDisasters);
-  const [filteredDisasters, setFilteredDisasters] = useState<DisasterLocation[]>(mockDisasters);
+  const [disasters, setDisasters] = useState<DisasterLocation[]>([]);
+  const [filteredDisasters, setFilteredDisasters] = useState<DisasterLocation[]>([]);
   const [selectedDisaster, setSelectedDisaster] = useState<DisasterLocation | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>({
     types: [],
     severities: [],
     dateRange: { start: null, end: null },
   });
 
-  const browserAgent = new BrowserUseAgent();
 
   useEffect(() => {
-    applyFilters();
-  }, [disasters, filters, applyFilters]);
+    const loadEmdatData = async () => {
+      setIsLoading(true);
+      try {
+        const emdatDisasters = await EmdatService.loadFromFile('/emdat-data.xlsx');
+        
+        // Show all disasters from 2024-2025
+        const disasters2024onwards = emdatDisasters.filter(disaster => {
+          const disasterYear = new Date(disaster.date).getFullYear();
+          return disasterYear >= 2024;
+        });
+        
+        console.log(`Loaded ${disasters2024onwards.length} disasters from 2024-2025`);
+        setDisasters(disasters2024onwards);
+      } catch (error) {
+        console.error('Error loading EMDAT data:', error);
+        setDisasters([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEmdatData();
+  }, []);
 
   const applyFilters = useCallback(() => {
     let filtered = [...disasters];
@@ -48,30 +67,33 @@ function App() {
     setFilteredDisasters(filtered);
   }, [disasters, filters]);
 
+  useEffect(() => {
+    applyFilters();
+  }, [disasters, filters, applyFilters]);
+
   const handleRefreshData = async () => {
     setIsLoading(true);
     try {
-      const newDisasters = await browserAgent.searchRecentDisasters();
-      if (newDisasters.length > 0) {
-        setDisasters([...mockDisasters, ...newDisasters]);
-      }
+      // Reload EMDAT data
+      const emdatDisasters = await EmdatService.loadFromFile('/emdat-data.xlsx');
+      
+      // Show all disasters from 2024-2025
+      const disasters2024onwards = emdatDisasters.filter(disaster => {
+        const disasterYear = new Date(disaster.date).getFullYear();
+        return disasterYear >= 2024;
+      });
+      
+      console.log(`Refreshed: ${disasters2024onwards.length} disasters from 2024-2025`);
+      setDisasters(disasters2024onwards);
     } catch (error) {
-      console.error('Error fetching disasters:', error);
+      console.error('Error refreshing disasters:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDisasterClick = async (disaster: DisasterLocation) => {
+  const handleDisasterClick = (disaster: DisasterLocation) => {
     setSelectedDisaster(disaster);
-    
-    if (disaster.donationLinks.length === 0) {
-      const donationLinks = await browserAgent.getDonationLinks(disaster.name, `${disaster.latitude},${disaster.longitude}`);
-      setSelectedDisaster({
-        ...disaster,
-        donationLinks,
-      });
-    }
   };
 
   return (
@@ -119,17 +141,10 @@ function App() {
         </div>
 
         <div className="globe-wrapper">
-          <Suspense fallback={
-            <div className="loading-container">
-              <div className="loading-spinner" />
-              <p>Loading Earth visualization...</p>
-            </div>
-          }>
-            <Globe 
-              disasters={filteredDisasters} 
-              onDisasterClick={handleDisasterClick}
-            />
-          </Suspense>
+          <Globe 
+            disasters={filteredDisasters} 
+            onDisasterClick={handleDisasterClick}
+          />
         </div>
 
         <DisasterPanel 
