@@ -5,6 +5,9 @@ import Globe from './components/Globe';
 import DisasterPanel from './components/DisasterPanel';
 import FilterBar from './components/FilterBar';
 import { EmdatService } from './services/emdatService';
+import { EONETService } from './services/eonetService';
+import { USGSService } from './services/usgsService';
+import { DisasterMerger } from './services/disasterMerger';
 import { Globe as GlobeIcon, RefreshCw, AlertTriangle } from 'lucide-react';
 import './App.css';
 
@@ -21,28 +24,82 @@ function App() {
 
 
   useEffect(() => {
-    const loadEmdatData = async () => {
+    const loadMultiSourceData = async () => {
       setIsLoading(true);
       try {
-        const emdatDisasters = await EmdatService.loadFromFile('/emdat-data-2000-2025.xlsx');
+        console.log('Loading disaster data from multiple sources...');
         
-        // Show all disasters from 2000-2025
-        const disastersFrom2000 = emdatDisasters.filter(disaster => {
-          const disasterYear = new Date(disaster.date).getFullYear();
-          return disasterYear >= 2000 && disasterYear <= 2025;
+        // Load data from all sources in parallel for better performance
+        const [emdatDisasters, eonetDisasters, usgsDisasters] = await Promise.allSettled([
+          // Load historical data from EM-DAT
+          EmdatService.loadFromFile('/emdat-data-2000-2025.xlsx').then(disasters => 
+            disasters.filter(disaster => {
+              const disasterYear = new Date(disaster.date).getFullYear();
+              return disasterYear >= 2000 && disasterYear <= 2025;
+            })
+          ),
+          
+          // Load recent active events from NASA EONET (last 30 days)
+          EONETService.fetchRecentEvents(30),
+          
+          // Load recent earthquakes from USGS (last 14 days, magnitude 4.5+)
+          USGSService.fetchRecentEarthquakes({ days: 14, minMagnitude: 4.5 })
+        ]);
+        
+        // Extract successful results
+        const emdat = emdatDisasters.status === 'fulfilled' ? emdatDisasters.value : [];
+        const eonet = eonetDisasters.status === 'fulfilled' ? eonetDisasters.value : [];
+        const usgs = usgsDisasters.status === 'fulfilled' ? usgsDisasters.value : [];
+        
+        // Log any failed requests
+        if (emdatDisasters.status === 'rejected') {
+          console.error('EM-DAT loading failed:', emdatDisasters.reason);
+        }
+        if (eonetDisasters.status === 'rejected') {
+          console.error('NASA EONET loading failed:', eonetDisasters.reason);
+        }
+        if (usgsDisasters.status === 'rejected') {
+          console.error('USGS loading failed:', usgsDisasters.reason);
+        }
+        
+        console.log(`Raw data loaded: EM-DAT (${emdat.length}), NASA EONET (${eonet.length}), USGS (${usgs.length})`);
+        
+        // Merge all sources and remove duplicates
+        const { disasters: mergedDisasters, stats } = DisasterMerger.mergeSources(emdat, eonet, usgs);
+        
+        console.log('Merger complete:', {
+          total: stats.totalEvents,
+          unique: mergedDisasters.length,
+          duplicatesRemoved: stats.duplicatesRemoved,
+          sources: stats.sourceBreakdown,
+          types: stats.typeBreakdown
         });
         
-        console.log(`Loaded ${disastersFrom2000.length} disasters from 2000-2025`);
-        setDisasters(disastersFrom2000);
+        setDisasters(mergedDisasters);
+        
       } catch (error) {
-        console.error('Error loading EMDAT data:', error);
-        setDisasters([]);
+        console.error('Error loading multi-source disaster data:', error);
+        
+        // Fallback: try to load just EM-DAT data
+        try {
+          console.log('Falling back to EM-DAT only...');
+          const emdatDisasters = await EmdatService.loadFromFile('/emdat-data-2000-2025.xlsx');
+          const disastersFrom2000 = emdatDisasters.filter(disaster => {
+            const disasterYear = new Date(disaster.date).getFullYear();
+            return disasterYear >= 2000 && disasterYear <= 2025;
+          });
+          setDisasters(disastersFrom2000);
+          console.log(`Fallback: Loaded ${disastersFrom2000.length} disasters from EM-DAT only`);
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+          setDisasters([]);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadEmdatData();
+    loadMultiSourceData();
   }, []);
 
   const applyFilters = useCallback(() => {

@@ -7,6 +7,25 @@ interface GlobeProps {
   onDisasterClick: (disaster: DisasterLocation) => void;
 }
 
+interface PointData {
+  lat: number;
+  lng: number;
+  size: number;
+  color: string;
+  name: string;
+  type: string;
+  disaster: DisasterLocation;
+}
+
+interface RingData {
+  lat: number;
+  lng: number;
+  maxR: number;
+  propagationSpeed: number;
+  repeatPeriod: number;
+  color: string;
+}
+
 export default function GlobeComponent({ disasters, onDisasterClick }: GlobeProps) {
   const globeEl = useRef<HTMLDivElement>(null);
   const globeInstance = useRef<any>(null);
@@ -15,7 +34,7 @@ export default function GlobeComponent({ disasters, onDisasterClick }: GlobeProp
     if (!globeEl.current) return;
 
     // Initialize globe
-    const globe = Globe()(globeEl.current)
+    const globe = (Globe as any)()(globeEl.current)
       .globeImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
       .bumpImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png')
       .backgroundImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png')
@@ -69,16 +88,16 @@ export default function GlobeComponent({ disasters, onDisasterClick }: GlobeProp
     // Update globe with disaster points
     globeInstance.current
       .pointsData(pointsData)
-      .pointAltitude((d: any) => d.size * 0.5)
-      .pointRadius((d: any) => d.size)
-      .pointColor((d: any) => d.color)
-      .pointLabel((d: any) => `
+      .pointAltitude((d: PointData) => d.size * 0.5)
+      .pointRadius((d: PointData) => d.size)
+      .pointColor((d: PointData) => d.color)
+      .pointLabel((d: PointData) => `
         <div style="text-align: center; padding: 4px;">
           <div style="font-weight: bold;">${d.name}</div>
           <div style="font-size: 0.9em; color: #888;">${d.type}</div>
         </div>
       `)
-      .onPointClick((point: any) => {
+      .onPointClick((point: PointData) => {
         if (point.disaster) {
           onDisasterClick(point.disaster);
         }
@@ -97,7 +116,7 @@ export default function GlobeComponent({ disasters, onDisasterClick }: GlobeProp
 
     globeInstance.current
       .ringsData(ringsData)
-      .ringColor((d: any) => d.color)
+      .ringColor((d: RingData) => d.color)
       .ringMaxRadius('maxR')
       .ringPropagationSpeed('propagationSpeed')
       .ringRepeatPeriod('repeatPeriod');
@@ -123,6 +142,7 @@ export default function GlobeComponent({ disasters, onDisasterClick }: GlobeProp
       heatwave: '#ff6644',
       storm: '#6644ff',
       earthquake: '#884444',
+      volcano: '#ff2200',
       other: '#888888',
     };
     return colors[type] || '#888888';
