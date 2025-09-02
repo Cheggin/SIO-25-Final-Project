@@ -24,16 +24,16 @@ function App() {
     const loadEmdatData = async () => {
       setIsLoading(true);
       try {
-        const emdatDisasters = await EmdatService.loadFromFile('/emdat-data.xlsx');
+        const emdatDisasters = await EmdatService.loadFromFile('/emdat-data-2000-2025.xlsx');
         
-        // Show all disasters from 2024-2025
-        const disasters2024onwards = emdatDisasters.filter(disaster => {
+        // Show all disasters from 2000-2025
+        const disastersFrom2000 = emdatDisasters.filter(disaster => {
           const disasterYear = new Date(disaster.date).getFullYear();
-          return disasterYear >= 2024;
+          return disasterYear >= 2000 && disasterYear <= 2025;
         });
         
-        console.log(`Loaded ${disasters2024onwards.length} disasters from 2024-2025`);
-        setDisasters(disasters2024onwards);
+        console.log(`Loaded ${disastersFrom2000.length} disasters from 2000-2025`);
+        setDisasters(disastersFrom2000);
       } catch (error) {
         console.error('Error loading EMDAT data:', error);
         setDisasters([]);
