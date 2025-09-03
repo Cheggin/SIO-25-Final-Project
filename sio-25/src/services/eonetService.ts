@@ -191,6 +191,12 @@ export class EONETService {
     const date = new Date(event.geometry[0].date);
     const type = this.mapCategoryToType(event.categories);
     
+    // Skip earthquakes without magnitude data - USGS provides better earthquake data
+    if (type === 'earthquake' && !event.geometry[0]?.magnitudeValue) {
+      console.log(`Skipping EONET earthquake without magnitude: ${event.title} - USGS will provide better data`);
+      return null;
+    }
+    
     const disaster: DisasterLocation = {
       id: `eonet-${event.id}`,
       originalId: event.id,

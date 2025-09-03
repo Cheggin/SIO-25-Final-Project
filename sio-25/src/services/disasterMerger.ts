@@ -108,14 +108,30 @@ export class DisasterMerger {
     const priority1 = sourcePriority[disaster1.source || ''] || 0;
     const priority2 = sourcePriority[disaster2.source || ''] || 0;
     
+    // For earthquakes, strongly prefer USGS over EONET (magnitude data quality)
+    if (disaster1.type === 'earthquake' && disaster2.type === 'earthquake') {
+      if (disaster1.source === 'USGS' && disaster2.source === 'NASA EONET') {
+        console.log(`Choosing USGS over EONET for earthquake: ${disaster1.name}`);
+        return disaster1;
+      }
+      if (disaster2.source === 'USGS' && disaster1.source === 'NASA EONET') {
+        console.log(`Choosing USGS over EONET for earthquake: ${disaster2.name}`);
+        return disaster2;
+      }
+    }
+    
     // If same priority, choose the one with more information
     if (priority1 === priority2) {
       const score1 = this.calculateInformationScore(disaster1);
       const score2 = this.calculateInformationScore(disaster2);
-      return score1 >= score2 ? disaster1 : disaster2;
+      const chosen = score1 >= score2 ? disaster1 : disaster2;
+      console.log(`Choosing ${chosen.source} over ${(chosen === disaster1 ? disaster2 : disaster1).source} based on information score (${Math.max(score1, score2)} vs ${Math.min(score1, score2)})`);
+      return chosen;
     }
     
-    return priority1 > priority2 ? disaster1 : disaster2;
+    const chosen = priority1 > priority2 ? disaster1 : disaster2;
+    console.log(`Choosing ${chosen.source} over ${(chosen === disaster1 ? disaster2 : disaster1).source} based on source priority`);
+    return chosen;
   }
   
   // Calculate how much information a disaster record contains
@@ -177,6 +193,7 @@ export class DisasterMerger {
         
         if (this.areDuplicates(currentDisaster, allDisasters[j])) {
           duplicateIndices.push(j);
+          console.log(`Found duplicate ${currentDisaster.type}: ${currentDisaster.source}/"${currentDisaster.name}" ≈ ${allDisasters[j].source}/"${allDisasters[j].name}"`);
           
           // Choose the better record
           bestDisaster = this.chooseBetterRecord(bestDisaster, allDisasters[j]);

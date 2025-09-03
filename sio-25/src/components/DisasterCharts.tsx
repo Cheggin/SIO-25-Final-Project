@@ -117,9 +117,11 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
     .sort(([a], [b]) => parseInt(a) - parseInt(b))
     .slice(-10); // Last 10 years
 
-  const monthData = Object.entries(stats.monthCount)
-    .map(([month, count]) => [monthNames[parseInt(month)], count] as [string, number])
-    .sort(([,a], [,b]) => (b as number) - (a as number));
+  // Ensure all 12 months are represented in chronological order
+  const monthData: [string, number][] = monthNames.map((monthName, index) => [
+    monthName, 
+    stats.monthCount[index] || 0
+  ]);
 
   // Chart component helpers
   const BarChart = ({ data, title, icon: Icon, getColor, maxHeight = 200 }: {
@@ -308,8 +310,8 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
 
         {/* Seasonal Patterns */}
         <BarChart
-          data={monthData.slice(0, 6)}
-          title="Seasonal Distribution"
+          data={monthData}
+          title="Seasonal Distribution (All Months)"
           icon={Calendar}
         />
 
