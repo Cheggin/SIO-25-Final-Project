@@ -72,8 +72,10 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
     let latestYear = -Infinity;
 
     disasters.forEach(disaster => {
-      // Type distribution
-      typeCount[disaster.type] = (typeCount[disaster.type] || 0) + 1;
+      // Type distribution (filter out empty/invalid types)
+      if (disaster.type && disaster.type.trim() !== '') {
+        typeCount[disaster.type] = (typeCount[disaster.type] || 0) + 1;
+      }
       
       // Severity distribution
       severityCount[disaster.severity] = (severityCount[disaster.severity] || 0) + 1;
@@ -170,10 +172,12 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
 
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  // Create chart data
+  // Create chart data - filter out entries with 0 values
   const typeData = Object.entries(stats.typeCount)
+    .filter(([key, value]) => value > 0 && key.trim() !== '') // Remove zero values and empty keys
     .sort(([,a], [,b]) => b - a)
     .slice(0, 8);
+  
 
   const severityData = Object.entries(stats.severityCount)
     .sort(([,a], [,b]) => b - a);
@@ -192,14 +196,29 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
   ]);
 
   // Chart component helpers
-  const BarChart = ({ data, title, icon: Icon, getColor, maxHeight = 200 }: {
+  const BarChart = ({ data, title, icon: Icon, getColor, maxHeight }: {
     data: [string, number][];
     title: string;
     icon: React.ComponentType<{ size?: number }>;
     getColor?: (key: string) => string;
     maxHeight?: number;
   }) => {
-    const maxValue = Math.max(...data.map(([, value]) => value));
+    // Filter out invalid data and ensure we have data to display
+    const validData = data.filter(([key, value]) => key && key.trim() !== '' && value > 0);
+    
+    if (validData.length === 0) {
+      return (
+        <div className="chart-container">
+          <div className="chart-header">
+            <Icon size={20} />
+            <h3>{title}</h3>
+          </div>
+          <div className="empty-chart">No data available</div>
+        </div>
+      );
+    }
+    
+    const maxValue = Math.max(...validData.map(([, value]) => value));
     
     return (
       <div className="chart-container">
@@ -207,15 +226,15 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
           <Icon size={20} />
           <h3>{title}</h3>
         </div>
-        <div className="bar-chart" style={{ maxHeight }}>
-          {data.map(([key, value]) => (
+        <div className="bar-chart" style={maxHeight ? { maxHeight } : {}}>
+          {validData.map(([key, value]) => (
             <div key={key} className="bar-item">
               <div className="bar-label">{key}</div>
               <div className="bar-container">
                 <div 
                   className="bar-fill" 
                   style={{ 
-                    width: `${(value / maxValue) * 100}%`,
+                    width: `${Math.max((value / maxValue) * 100, 1)}%`, // Minimum 1% width for visibility
                     backgroundColor: getColor ? getColor(key) : '#00b4d8'
                   }}
                 />
