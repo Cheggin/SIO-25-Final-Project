@@ -4,12 +4,16 @@ import type { FilterState } from './components/FilterBar';
 import Globe from './components/Globe';
 import DisasterPanel from './components/DisasterPanel';
 import FilterBar from './components/FilterBar';
+import DisasterTable from './components/DisasterTable';
+import DisasterCharts from './components/DisasterCharts';
 import { EmdatService } from './services/emdatService';
 import { EONETService } from './services/eonetService';
 import { USGSService } from './services/usgsService';
 import { DisasterMerger } from './services/disasterMerger';
-import { Globe as GlobeIcon, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Globe as GlobeIcon, RefreshCw, AlertTriangle, Table, BarChart3 } from 'lucide-react';
 import './App.css';
+import './components/DisasterTable.css';
+import './components/DisasterCharts.css';
 
 function App() {
   const [disasters, setDisasters] = useState<DisasterLocation[]>([]);
@@ -21,6 +25,7 @@ function App() {
     severities: [],
     dateRange: { start: null, end: null },
   });
+  const [currentView, setCurrentView] = useState<'globe' | 'table' | 'charts'>('globe');
 
 
   useEffect(() => {
@@ -164,6 +169,32 @@ function App() {
           <p className="tagline">Visualizing climate disasters and connecting relief efforts worldwide</p>
         </div>
         <div className="header-actions">
+          <div className="view-toggle">
+            <button 
+              className={`view-button ${currentView === 'globe' ? 'active' : ''}`}
+              onClick={() => setCurrentView('globe')}
+              title="Globe View"
+            >
+              <GlobeIcon size={20} />
+              Globe
+            </button>
+            <button 
+              className={`view-button ${currentView === 'table' ? 'active' : ''}`}
+              onClick={() => setCurrentView('table')}
+              title="Table View"
+            >
+              <Table size={20} />
+              Table
+            </button>
+            <button 
+              className={`view-button ${currentView === 'charts' ? 'active' : ''}`}
+              onClick={() => setCurrentView('charts')}
+              title="Charts View"
+            >
+              <BarChart3 size={20} />
+              Charts
+            </button>
+          </div>
           <FilterBar onFilterChange={setFilters} />
           <button 
             className="refresh-button" 
@@ -197,11 +228,37 @@ function App() {
           </div>
         </div>
 
-        <div className="globe-wrapper">
-          <Globe 
-            disasters={filteredDisasters} 
-            onDisasterClick={handleDisasterClick}
-          />
+        <div className="content-wrapper">
+          {isLoading ? (
+            <div className="loading-container">
+              <div className="loading-spinner" />
+              <p>Loading disaster data from multiple sources...</p>
+            </div>
+          ) : (
+            <>
+              {currentView === 'globe' && (
+                <div className="globe-wrapper">
+                  <Globe 
+                    disasters={filteredDisasters} 
+                    onDisasterClick={handleDisasterClick}
+                  />
+                </div>
+              )}
+              
+              {currentView === 'table' && (
+                <DisasterTable 
+                  disasters={filteredDisasters} 
+                  onDisasterClick={handleDisasterClick}
+                />
+              )}
+              
+              {currentView === 'charts' && (
+                <DisasterCharts 
+                  disasters={filteredDisasters}
+                />
+              )}
+            </>
+          )}
         </div>
 
         <DisasterPanel 

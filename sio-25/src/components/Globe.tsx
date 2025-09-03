@@ -28,12 +28,14 @@ interface RingData {
 
 export default function GlobeComponent({ disasters, onDisasterClick }: GlobeProps) {
   const globeEl = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeInstance = useRef<any>(null);
 
   useEffect(() => {
     if (!globeEl.current) return;
 
     // Initialize globe
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const globe = (Globe as any)()(globeEl.current)
       .globeImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
       .bumpImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png')

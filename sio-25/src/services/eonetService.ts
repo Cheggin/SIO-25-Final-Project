@@ -23,30 +23,54 @@ export class EONETService {
   }
   
   // Calculate severity based on event duration and category
+  // Note: EONET doesn't provide affected people data, so we use conservative ratings
   private static calculateSeverity(event: EONETEvent): DisasterLocation['severity'] {
     // If event has been active for a long time, it's likely more severe
     const startDate = new Date(event.geometry[0]?.date);
     const endDate = event.closed ? new Date(event.closed) : new Date();
     const durationDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
     
-    // Volcanoes and earthquakes are inherently severe
+    // Conservative severity ratings since we don't have impact data
     const type = this.mapCategoryToType(event.categories);
-    if (type === 'volcano' || type === 'earthquake') {
-      return durationDays > 7 ? 'critical' : 'high';
-    }
     
-    // For wildfires, longer duration means more severe
-    if (type === 'wildfire') {
-      if (durationDays > 30) return 'critical';
-      if (durationDays > 14) return 'high';
-      if (durationDays > 7) return 'moderate';
+    if (type === 'volcano') {
+      // Active volcanoes: conservative ratings without population impact data
+      if (durationDays > 60) return 'high';
+      if (durationDays > 14) return 'moderate';
       return 'low';
     }
     
-    // For other events
-    if (durationDays > 60) return 'critical';
-    if (durationDays > 30) return 'high';
-    if (durationDays > 14) return 'moderate';
+    if (type === 'earthquake') {
+      // Earthquakes are instant events, duration doesn't matter
+      // Conservative rating without magnitude/impact data
+      return 'moderate';
+    }
+    
+    // For wildfires, longer duration indicates larger scope
+    if (type === 'wildfire') {
+      if (durationDays > 90) return 'high';    // Very long-burning fires
+      if (durationDays > 30) return 'moderate'; // Extended fires  
+      if (durationDays > 7) return 'moderate';  // Week+ fires
+      return 'low';
+    }
+    
+    // For storms, hurricanes, and floods - typically shorter duration events
+    if (type === 'storm' || type === 'hurricane' || type === 'flood') {
+      if (durationDays > 21) return 'high';     // Extended storm systems
+      if (durationDays > 7) return 'moderate';  // Week-long events
+      return 'moderate'; // Default to moderate for detected weather events
+    }
+    
+    // For droughts and heatwaves - longer duration events
+    if (type === 'drought' || type === 'heatwave') {
+      if (durationDays > 120) return 'high';    // 4+ month events
+      if (durationDays > 60) return 'moderate'; // 2+ month events
+      return 'moderate'; // Default moderate for extended phenomena
+    }
+    
+    // For other events - conservative approach
+    if (durationDays > 120) return 'high';
+    if (durationDays > 30) return 'moderate';
     return 'low';
   }
   

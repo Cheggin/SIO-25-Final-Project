@@ -73,6 +73,42 @@ h1 {
   gap: 1rem;
   margin-top: 1rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.view-toggle {
+  display: flex;
+  background: rgba(0, 180, 216, 0.1);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 8px;
+  padding: 0.25rem;
+  gap: 0.25rem;
+}
+
+.view-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #90e0ef;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-button:hover {
+  background: rgba(0, 180, 216, 0.2);
+  color: #ffffff;
+}
+
+.view-button.active {
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 180, 216, 0.3);
 }
 
 .refresh-button {
@@ -143,6 +179,15 @@ h1 {
   font-size: 0.9rem;
   color: #90e0ef;
   opacity: 0.8;
+}
+
+.content-wrapper {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
 }
 
 .globe-wrapper {
@@ -533,6 +578,20 @@ h1 {
 @media (max-width: 768px) {
   .disaster-panel {
     width: 100%;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .view-toggle {
+    justify-content: center;
+  }
+  
+  .view-button {
+    flex: 1;
+    justify-content: center;
   }
   
   .stats-bar {

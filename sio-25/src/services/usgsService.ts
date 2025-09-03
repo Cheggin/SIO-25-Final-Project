@@ -5,26 +5,22 @@ export class USGSService {
   private static readonly BASE_URL = 'https://earthquake.usgs.gov/fdsnws/event/1';
   
   // Calculate severity based on magnitude
+  // Note: Conservative ratings since we don't have actual casualty/impact data
   private static calculateSeverity(magnitude: number): DisasterLocation['severity'] {
-    if (magnitude >= 7.0) return 'critical';  // Major earthquake
+    if (magnitude >= 8.0) return 'critical';  // Great earthquake (very rare)
+    if (magnitude >= 7.0) return 'high';      // Major earthquake  
     if (magnitude >= 6.0) return 'high';      // Strong earthquake
-    if (magnitude >= 5.0) return 'moderate';  // Moderate earthquake
-    return 'low';                             // Light earthquake
+    if (magnitude >= 5.5) return 'moderate';  // Moderate earthquake
+    if (magnitude >= 5.0) return 'moderate';  // Light earthquake with potential damage
+    return 'low';                             // Minor earthquake
   }
   
-  // Estimate affected people based on magnitude and depth
-  private static estimateAffectedPeople(magnitude: number, depth: number): number {
-    // This is a rough estimation - real impact depends on many factors
-    let basePeople = Math.pow(10, magnitude - 2) * 100;
-    
-    // Shallow earthquakes are more destructive
-    if (depth < 10) {
-      basePeople *= 2;
-    } else if (depth > 100) {
-      basePeople *= 0.5;
-    }
-    
-    return Math.round(basePeople);
+  // Don't estimate affected people - USGS doesn't provide this data
+  // Return 0 to be consistent with other sources that lack impact data
+  private static getAffectedPeople(): number {
+    // USGS doesn't provide affected people data, so we return 0
+    // to avoid confusion with estimated numbers alongside real impact data
+    return 0;
   }
   
   // Generate a comprehensive summary for the earthquake
@@ -109,7 +105,7 @@ export class USGSService {
       return null;
     }
     
-    const [longitude, latitude, depth] = feature.geometry.coordinates;
+    const [longitude, latitude] = feature.geometry.coordinates;
     const props = feature.properties;
     const date = new Date(props.time);
     
@@ -122,7 +118,7 @@ export class USGSService {
       longitude,
       date,
       severity: this.calculateSeverity(props.mag),
-      affectedPeople: this.estimateAffectedPeople(props.mag, depth),
+      affectedPeople: this.getAffectedPeople(),
       summary: this.generateSummary(feature),
       donationLinks: [],
       source: 'USGS',
