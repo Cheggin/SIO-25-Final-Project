@@ -16,24 +16,41 @@ interface DisasterChartsProps {
 
 // Function to determine continent from coordinates
 const getContinent = (latitude: number, longitude: number): string => {
-  // Simple continent detection based on latitude/longitude ranges
-  // This is a basic implementation - for production, you'd want a more robust solution
-  if (longitude >= -180 && longitude <= -30) {
-    if (latitude >= 15) return 'North America';
-    if (latitude >= -60) return 'South America';
+  // Realistic continent detection - Antarctica disasters should be extremely rare
+  
+  // Antarctica (actual Antarctica, below -60° - very rare for disasters)
+  if (latitude <= -60) {
     return 'Antarctica';
   }
+  
+  // North America: Western hemisphere, northern latitudes
+  if (longitude >= -170 && longitude <= -30) {
+    if (latitude >= 15) return 'North America';
+    if (latitude >= -60) return 'South America';
+  }
+  
+  // Europe and Africa: Eastern hemisphere western part
   if (longitude >= -30 && longitude <= 70) {
     if (latitude >= 35) return 'Europe';
     if (latitude >= -35) return 'Africa';
-    return 'Antarctica';
   }
-  if (longitude >= 70 && longitude <= 180) {
-    if (latitude >= 10) return 'Asia';
-    if (longitude >= 110 && latitude >= -45) return 'Australia/Oceania';
-    if (latitude >= -45) return 'Asia';
-    return 'Antarctica';
+  
+  // Asia: Eastern hemisphere eastern part, northern latitudes  
+  if (longitude >= 70 && longitude <= 180 && latitude >= 10) {
+    return 'Asia';
   }
+  
+  // Australia/Oceania: Southeastern region
+  if (longitude >= 110 && longitude <= 180 && latitude >= -50 && latitude < 10) {
+    return 'Australia/Oceania';
+  }
+  
+  // Small islands and territories in various regions
+  if (longitude >= 25 && longitude <= 180 && latitude >= -50 && latitude < 10) {
+    return 'Asia'; // Includes Indonesia, Philippines, etc.
+  }
+  
+  // Everything else is unclassifiable (likely ocean)
   return 'Unknown';
 };
 
@@ -79,6 +96,11 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
         continentCount[continent] = (continentCount[continent] || 0) + 1;
       }
       
+      // Log any Antarctica detections (should be extremely rare)
+      if (continent === 'Antarctica') {
+        console.warn(`Antarctica disaster detected: ${disaster.name} at (${disaster.latitude.toFixed(2)}, ${disaster.longitude.toFixed(2)}) from ${disaster.source}`);
+      }
+      
       // Track year range
       earliestYear = Math.min(earliestYear, year);
       latestYear = Math.max(latestYear, year);
@@ -93,6 +115,12 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
       }
     });
 
+    // Log continent distribution for verification
+    if (Object.keys(continentCount).length > 0) {
+      console.log('Continents with disasters:', Object.keys(continentCount).sort());
+      console.log('Distribution:', continentCount);
+    }
+    
     return {
       typeCount,
       severityCount,
@@ -379,7 +407,7 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
           </div>
           <div className="coverage-stats">
             <div className="coverage-item">
-              <span className="coverage-label">Continents with Data</span>
+              <span className="coverage-label">Continents</span>
               <span className="coverage-value">{stats.actualContinents}</span>
             </div>
             <div className="coverage-item">
@@ -387,7 +415,7 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
               <span className="coverage-value">{stats.actualSources}</span>
             </div>
             <div className="coverage-item">
-              <span className="coverage-label">Actual Year Range</span>
+              <span className="coverage-label">Year Range</span>
               <span className="coverage-value">{stats.yearRange}</span>
             </div>
           </div>
