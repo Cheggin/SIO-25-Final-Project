@@ -14,6 +14,29 @@ interface DisasterChartsProps {
   disasters: DisasterLocation[];
 }
 
+// Function to determine continent from coordinates
+const getContinent = (latitude: number, longitude: number): string => {
+  // Simple continent detection based on latitude/longitude ranges
+  // This is a basic implementation - for production, you'd want a more robust solution
+  if (longitude >= -180 && longitude <= -30) {
+    if (latitude >= 15) return 'North America';
+    if (latitude >= -60) return 'South America';
+    return 'Antarctica';
+  }
+  if (longitude >= -30 && longitude <= 70) {
+    if (latitude >= 35) return 'Europe';
+    if (latitude >= -35) return 'Africa';
+    return 'Antarctica';
+  }
+  if (longitude >= 70 && longitude <= 180) {
+    if (latitude >= 10) return 'Asia';
+    if (longitude >= 110 && latitude >= -45) return 'Australia/Oceania';
+    if (latitude >= -45) return 'Asia';
+    return 'Antarctica';
+  }
+  return 'Unknown';
+};
+
 const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
   
   // Calculate statistics
@@ -23,10 +46,13 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
     const sourceCount: Record<string, number> = {};
     const yearCount: Record<number, number> = {};
     const monthCount: Record<number, number> = {};
+    const continentCount: Record<string, number> = {};
     
     let totalAffected = 0;
     let totalWithMagnitude = 0;
     let magnitudeSum = 0;
+    let earliestYear = Infinity;
+    let latestYear = -Infinity;
 
     disasters.forEach(disaster => {
       // Type distribution
@@ -47,6 +73,16 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
       const month = disaster.date.getMonth();
       monthCount[month] = (monthCount[month] || 0) + 1;
       
+      // Continent distribution
+      const continent = getContinent(disaster.latitude, disaster.longitude);
+      if (continent !== 'Unknown') {
+        continentCount[continent] = (continentCount[continent] || 0) + 1;
+      }
+      
+      // Track year range
+      earliestYear = Math.min(earliestYear, year);
+      latestYear = Math.max(latestYear, year);
+      
       // Affected people
       totalAffected += disaster.affectedPeople;
       
@@ -63,9 +99,13 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
       sourceCount,
       yearCount,
       monthCount,
+      continentCount,
       totalAffected,
       averageMagnitude: totalWithMagnitude > 0 ? magnitudeSum / totalWithMagnitude : 0,
-      totalEvents: disasters.length
+      totalEvents: disasters.length,
+      actualContinents: Object.keys(continentCount).length,
+      actualSources: Object.keys(sourceCount).length,
+      yearRange: disasters.length > 0 ? `${earliestYear}-${latestYear}` : 'No data'
     };
   }, [disasters]);
 
@@ -322,28 +362,33 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
           icon={Globe}
         />
 
-        {/* Regional Activity (placeholder for future enhancement) */}
+        {/* Real Continental Distribution */}
+        {Object.keys(stats.continentCount).length > 0 && (
+          <BarChart
+            data={Object.entries(stats.continentCount).sort(([,a], [,b]) => b - a)}
+            title="Distribution by Continent"
+            icon={Globe}
+          />
+        )}
+
+        {/* Real Data Coverage Stats */}
         <div className="chart-container">
           <div className="chart-header">
-            <Globe size={20} />
-            <h3>Global Coverage</h3>
+            <Activity size={20} />
+            <h3>Data Coverage (Actual)</h3>
           </div>
           <div className="coverage-stats">
             <div className="coverage-item">
-              <span className="coverage-label">Continents Covered</span>
-              <span className="coverage-value">7</span>
+              <span className="coverage-label">Continents with Data</span>
+              <span className="coverage-value">{stats.actualContinents}</span>
             </div>
             <div className="coverage-item">
-              <span className="coverage-label">Countries with Data</span>
-              <span className="coverage-value">150+</span>
+              <span className="coverage-label">Active Data Sources</span>
+              <span className="coverage-value">{stats.actualSources}</span>
             </div>
             <div className="coverage-item">
-              <span className="coverage-label">Real-time Sources</span>
-              <span className="coverage-value">3</span>
-            </div>
-            <div className="coverage-item">
-              <span className="coverage-label">Historical Range</span>
-              <span className="coverage-value">2000-2025</span>
+              <span className="coverage-label">Actual Year Range</span>
+              <span className="coverage-value">{stats.yearRange}</span>
             </div>
           </div>
         </div>
