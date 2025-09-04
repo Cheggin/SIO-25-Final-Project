@@ -110,8 +110,8 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
       // Affected people
       totalAffected += disaster.affectedPeople;
       
-      // Magnitude average (for earthquakes)
-      if (disaster.magnitude) {
+      // Magnitude average (for earthquakes and volcanoes only)
+      if (disaster.magnitude && (disaster.type === 'earthquake' || disaster.type === 'volcano')) {
         magnitudeSum += disaster.magnitude;
         totalWithMagnitude++;
       }
@@ -356,7 +356,7 @@ const DisasterCharts = ({ disasters }: DisasterChartsProps) => {
         <StatCard
           title="Average Magnitude"
           value={stats.averageMagnitude.toFixed(1)}
-          subtitle="For earthquakes"
+          subtitle="For earthquakes & volcanoes"
           icon={Activity}
           color="#f97316"
         />

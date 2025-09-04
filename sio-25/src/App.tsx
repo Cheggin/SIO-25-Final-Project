@@ -212,7 +212,7 @@ function App() {
           <div className="stat-item">
             <AlertTriangle size={20} />
             <span className="stat-value">{filteredDisasters.length}</span>
-            <span className="stat-label">Active Disasters</span>
+            <span className="stat-label">Recorded Disasters</span>
           </div>
           <div className="stat-item">
             <span className="stat-value">

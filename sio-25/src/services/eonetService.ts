@@ -99,9 +99,10 @@ export class EONETService {
       parts.push(`${category} detected on ${startDate.toLocaleDateString()}.`);
     }
     
-    // Add magnitude information if available
+    // Add magnitude information if available (only for earthquakes and volcanoes)
+    const type = this.mapCategoryToType(event.categories);
     const magnitude = event.geometry[0]?.magnitudeValue;
-    if (magnitude) {
+    if (magnitude && (type === 'earthquake' || type === 'volcano')) {
       parts.push(`Magnitude: ${magnitude} ${event.geometry[0]?.magnitudeUnit || ''}`);
     }
     
@@ -211,7 +212,8 @@ export class EONETService {
       donationLinks: [],
       source: 'NASA EONET',
       sourceUrl: event.link,
-      magnitude: event.geometry[0]?.magnitudeValue
+      // Only set magnitude for earthquakes and volcanoes (which have meaningful magnitude scales)
+      magnitude: (type === 'earthquake' || type === 'volcano') ? event.geometry[0]?.magnitudeValue : undefined
     };
     
     return disaster;

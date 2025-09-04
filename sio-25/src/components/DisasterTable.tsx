@@ -241,7 +241,7 @@ const DisasterTable = ({ disasters, onDisasterClick }: DisasterTableProps) => {
                   )}
                 </td>
                 <td className="magnitude-cell">
-                  {disaster.magnitude && (
+                  {disaster.magnitude && (disaster.type === 'earthquake' || disaster.type === 'volcano') && (
                     <div className="magnitude-info">
                       <AlertTriangle size={16} />
                       <span>M{disaster.magnitude}</span>
