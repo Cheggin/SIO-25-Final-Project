@@ -1,0 +1,464 @@
+/* Climate Impact Charts - Matching App Design */
+.climate-impact-charts {
+  padding: 2rem;
+  background: rgba(0, 8, 20, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  margin: 2rem;
+}
+
+/* Climate Header */
+.climate-header {
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  color: #00b4d8;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.climate-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0 0;
+  color: #90e0ef;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* Key Stats Banner */
+.key-stat-banner {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(0, 180, 216, 0.05);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.stat-item.highlight {
+  padding: 1rem 1.5rem;
+  background: rgba(220, 38, 38, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #dc2626;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  color: #00b4d8;
+  flex-shrink: 0;
+}
+
+.stat-item.highlight .stat-icon {
+  color: #dc2626;
+  width: 56px;
+  height: 56px;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #90e0ef;
+  margin-top: 0.25rem;
+  opacity: 0.9;
+}
+
+/* Chart Tabs */
+.chart-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  padding: 0.25rem;
+  background: rgba(0, 180, 216, 0.05);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.chart-tabs button {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: #90e0ef;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+}
+
+.chart-tabs button:hover {
+  background: rgba(0, 180, 216, 0.1);
+  color: #ffffff;
+}
+
+.chart-tabs button.active {
+  background: rgba(0, 180, 216, 0.2);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+}
+
+/* Chart Container */
+.chart-container {
+  background: rgba(0, 180, 216, 0.05);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  min-height: 500px;
+}
+
+.attribution-view h3,
+.event-type-view h3,
+.severity-view h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+/* Pie Chart Section */
+.pie-chart-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Custom Legend */
+.legend-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: rgba(0, 8, 20, 0.4);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.legend-item:hover {
+  background: rgba(0, 180, 216, 0.1);
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.legend-label {
+  flex: 1;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.legend-count {
+  color: #90e0ef;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* Insights Section */
+.insights-section {
+  padding-left: 2rem;
+  border-left: 2px solid rgba(0, 180, 216, 0.3);
+}
+
+.insights-section h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  color: #00b4d8;
+  font-weight: 600;
+}
+
+.insights-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.insights-section li {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0, 180, 216, 0.1);
+  font-size: 0.9rem;
+  color: #caf0f8;
+  line-height: 1.6;
+}
+
+.insights-section li:last-child {
+  border-bottom: none;
+}
+
+.insights-section strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Insight Note */
+.insight-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.insight-note svg {
+  flex-shrink: 0;
+  color: #fbbf24;
+  margin-top: 2px;
+}
+
+.insight-note p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ffffff;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Chart Insights */
+.chart-insights {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(0, 8, 20, 0.4);
+  border-radius: 8px;
+  border-left: 3px solid #00b4d8;
+}
+
+.chart-insights p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #caf0f8;
+  line-height: 1.6;
+}
+
+.chart-insights p:first-child {
+  margin-top: 0;
+}
+
+.chart-insights p:last-child {
+  margin-bottom: 0;
+}
+
+.chart-insights strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Custom Tooltip */
+.custom-tooltip {
+  background: rgba(0, 8, 20, 0.95);
+  border: 1px solid rgba(0, 180, 216, 0.3);
+  border-radius: 6px;
+  padding: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.custom-tooltip .label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.custom-tooltip p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: #90e0ef;
+}
+
+/* Source Footer */
+.source-footer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(0, 180, 216, 0.05);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 8px;
+}
+
+.source-footer svg {
+  flex-shrink: 0;
+  color: #00b4d8;
+  margin-top: 2px;
+}
+
+.source-footer p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #90e0ef;
+  line-height: 1.5;
+}
+
+.source-footer a {
+  color: #00b4d8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.source-footer a:hover {
+  color: #48cae4;
+  text-decoration: underline;
+}
+
+/* Recharts Custom Styling */
+.recharts-cartesian-axis-tick-value {
+  fill: #90e0ef;
+  font-size: 0.85rem;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(0, 180, 216, 0.1);
+}
+
+.recharts-legend-wrapper {
+  margin-top: 1rem;
+}
+
+.recharts-legend-item-text {
+  color: #90e0ef !important;
+  font-size: 0.9rem;
+}
+
+.recharts-pie-sector {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recharts-pie-sector:hover {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  transform: scale(1.02);
+}
+
+.recharts-bar {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .insights-section {
+    padding-left: 0;
+    padding-top: 2rem;
+    border-left: none;
+    border-top: 2px solid rgba(0, 180, 216, 0.3);
+    margin-top: 2rem;
+  }
+  
+  .key-stat-banner {
+    flex-direction: column;
+  }
+
+  .stat-item.highlight {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .climate-impact-charts {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .chart-container {
+    padding: 1.5rem;
+  }
+  
+  .chart-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .chart-tabs button {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .climate-header h2 {
+    font-size: 1.4rem;
+  }
+}

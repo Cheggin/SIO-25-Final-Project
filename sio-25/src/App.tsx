@@ -6,14 +6,16 @@ import DisasterPanel from './components/DisasterPanel';
 import FilterBar from './components/FilterBar';
 import DisasterTable from './components/DisasterTable';
 import DisasterCharts from './components/DisasterCharts';
+import ClimateImpactCharts from './components/ClimateImpactCharts';
 import { EmdatService } from './services/emdatService';
 import { EONETService } from './services/eonetService';
 import { USGSService } from './services/usgsService';
 import { DisasterMerger } from './services/disasterMerger';
-import { Globe as GlobeIcon, RefreshCw, AlertTriangle, Table, BarChart3 } from 'lucide-react';
+import { Globe as GlobeIcon, RefreshCw, AlertTriangle, Table, BarChart3, ThermometerSun } from 'lucide-react';
 import './App.css';
 import './components/DisasterTable.css';
 import './components/DisasterCharts.css';
+import './components/ClimateImpactCharts.css';
 
 function App() {
   const [disasters, setDisasters] = useState<DisasterLocation[]>([]);
@@ -25,7 +27,7 @@ function App() {
     severities: [],
     dateRange: { start: null, end: null },
   });
-  const [currentView, setCurrentView] = useState<'globe' | 'table' | 'charts'>('globe');
+  const [currentView, setCurrentView] = useState<'globe' | 'table' | 'charts' | 'climate'>('globe');
 
 
   useEffect(() => {
@@ -194,6 +196,14 @@ function App() {
               <BarChart3 size={20} />
               Charts
             </button>
+            <button 
+              className={`view-button ${currentView === 'climate' ? 'active' : ''}`}
+              onClick={() => setCurrentView('climate')}
+              title="Climate Impact"
+            >
+              <ThermometerSun size={20} />
+              Climate
+            </button>
           </div>
           <FilterBar onFilterChange={setFilters} />
           <button 
@@ -256,6 +266,10 @@ function App() {
                 <DisasterCharts 
                   disasters={filteredDisasters}
                 />
+              )}
+              
+              {currentView === 'climate' && (
+                <ClimateImpactCharts disasters={filteredDisasters} />
               )}
             </>
           )}
