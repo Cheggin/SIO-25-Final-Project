@@ -7,11 +7,12 @@ import FilterBar from './components/FilterBar';
 import DisasterTable from './components/DisasterTable';
 import DisasterCharts from './components/DisasterCharts';
 import ClimateImpactCharts from './components/ClimateImpactCharts';
+import DonationResources from './components/DonationResources';
 import { EmdatService } from './services/emdatService';
 import { EONETService } from './services/eonetService';
 import { USGSService } from './services/usgsService';
 import { DisasterMerger } from './services/disasterMerger';
-import { Globe as GlobeIcon, RefreshCw, AlertTriangle, Table, BarChart3, ThermometerSun } from 'lucide-react';
+import { Globe as GlobeIcon, RefreshCw, AlertTriangle, Table, BarChart3, ThermometerSun, Heart } from 'lucide-react';
 import './App.css';
 import './components/DisasterTable.css';
 import './components/DisasterCharts.css';
@@ -27,7 +28,7 @@ function App() {
     severities: [],
     dateRange: { start: null, end: null },
   });
-  const [currentView, setCurrentView] = useState<'globe' | 'table' | 'charts' | 'climate'>('globe');
+  const [currentView, setCurrentView] = useState<'globe' | 'table' | 'charts' | 'climate' | 'donations'>('globe');
 
 
   useEffect(() => {
@@ -204,6 +205,14 @@ function App() {
               <ThermometerSun size={20} />
               Climate
             </button>
+            <button 
+              className={`view-button ${currentView === 'donations' ? 'active' : ''}`}
+              onClick={() => setCurrentView('donations')}
+              title="Donation Resources"
+            >
+              <Heart size={20} />
+              Donations
+            </button>
           </div>
           <FilterBar onFilterChange={setFilters} />
           <button 
@@ -271,6 +280,10 @@ function App() {
               {currentView === 'climate' && (
                 <ClimateImpactCharts disasters={filteredDisasters} />
               )}
+              
+              {currentView === 'donations' && (
+                <DonationResources />
+              )}
             </>
           )}
         </div>
@@ -282,8 +295,8 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>Data sources: Relief agencies, meteorological services, and environmental organizations</p>
-        <p>© 2024 Climate Crisis Tracker - Raising awareness for climate action</p>
+        <p>Data sources: NASA EONET, EM-DATA, USGS</p>
+        <p>© 2025 Climate Crisis Tracker - Raising awareness for climate action</p>
       </footer>
     </div>
   );
